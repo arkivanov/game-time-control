@@ -32,6 +32,9 @@ data class RootState(
     val endTime: ComparableTimeMark? = null,
 )
 
+fun RootState.remainingTime(): Duration =
+    ((endTime ?: currentTime) - currentTime).coerceAtLeast(Duration.ZERO)
+
 fun StoreFactory.rootStore(
     clock: TimeSource.WithComparableMarks,
     mainScheduler: Scheduler,
@@ -70,9 +73,7 @@ private class RootExecutor(
 
             is ClientMsg.GetState -> {
                 val state = state()
-                val endTime = state.endTime ?: state.currentTime
-                val remainingTime = (endTime - state.currentTime).coerceAtLeast(Duration.ZERO)
-                return ServerMsg.State(remainingTime = remainingTime)
+                return ServerMsg.State(remainingTime = state.remainingTime())
             }
         }
     }

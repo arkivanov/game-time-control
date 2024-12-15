@@ -27,6 +27,7 @@ kotlin {
             implementation(libs.datetime)
             implementation(libs.reaktive)
             implementation(libs.mvikotlin)
+            implementation(libs.mvikotlin.main)
             implementation(libs.mvikotlin.extensions.reaktive)
         }
 
