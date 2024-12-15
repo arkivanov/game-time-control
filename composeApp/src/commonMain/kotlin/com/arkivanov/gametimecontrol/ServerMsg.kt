@@ -6,5 +6,6 @@ import kotlin.time.Duration
 @Serializable
 sealed interface ServerMsg {
 
+    @Serializable
     data class State(val remainingTime: Duration) : ServerMsg
 }

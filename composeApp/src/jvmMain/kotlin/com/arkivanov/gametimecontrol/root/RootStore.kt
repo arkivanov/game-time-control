@@ -10,6 +10,13 @@ import com.arkivanov.mvikotlin.extensions.reaktive.ReaktiveExecutor
 import com.badoo.reaktive.disposable.scope.DisposableScope
 import com.badoo.reaktive.observable.observableInterval
 import com.badoo.reaktive.scheduler.Scheduler
+import com.badoo.reaktive.single.Single
+import com.badoo.reaktive.single.map
+import com.badoo.reaktive.single.observeOn
+import com.badoo.reaktive.single.singleFromFunction
+import com.badoo.reaktive.single.singleOf
+import com.badoo.reaktive.single.subscribe
+import com.badoo.reaktive.single.subscribeOn
 import io.ktor.serialization.kotlinx.KotlinxWebsocketSerializationConverter
 import io.ktor.server.application.install
 import io.ktor.server.engine.embeddedServer
@@ -23,8 +30,11 @@ import io.ktor.server.websocket.timeout
 import io.ktor.server.websocket.webSocket
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.json.Json
 import java.net.NetworkInterface
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import kotlin.time.ComparableTimeMark
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -73,8 +83,12 @@ private class RootExecutor(
     private val clock: TimeSource.WithComparableMarks,
     private val mainScheduler: Scheduler,
 ) : ReaktiveExecutor<Nothing, Unit, RootState, Msg, Nothing>() {
+
     override fun executeAction(action: Unit) {
-        startServer(getState = ::state, onMessage = ::onClientMsg)
+        startServer(
+            getState = { singleFromFunction(::state).subscribeOn(mainScheduler) },
+            onMessage = { singleOf(it).observeOn(mainScheduler).map(::onClientMsg) },
+        )
 
         observableInterval(period = 250.milliseconds, scheduler = mainScheduler).subscribeScoped {
             dispatch(Msg.CurrentTimeChanged(clock.markNow()))
@@ -91,9 +105,15 @@ private class RootExecutor(
     }
 }
 
+suspend fun <T> Single<T>.await(): T =
+    suspendCancellableCoroutine { continuation ->
+        val disposable = subscribe(onError = continuation::resumeWithException, onSuccess = continuation::resume)
+        continuation.invokeOnCancellation { disposable.dispose() }
+    }
+
 private fun DisposableScope.startServer(
-    getState: () -> RootState,
-    onMessage: (ClientMsg) -> ServerMsg?,
+    getState: () -> Single<RootState>,
+    onMessage: (ClientMsg) -> Single<ServerMsg?>,
 ) {
     embeddedServer(factory = Netty, port = DEFAULT_PORT) {
         install(WebSockets) {
@@ -104,22 +124,29 @@ private fun DisposableScope.startServer(
 
         routing {
             webSocket("/") {
-                launch {
+                println("Client connected")
+
+                try {
+                    launch {
+                        while (true) {
+                            val state = getState().await()
+                            sendSerialized<ServerMsg>(ServerMsg.State(remainingTime = state.remainingTime()))
+                            delay(250.milliseconds)
+                        }
+                    }
+
                     while (true) {
                         val msg = receiveDeserialized<ClientMsg>()
                         println("Received: $msg")
 
-                        onMessage(msg)?.also { response ->
+                        val response = onMessage(msg).await()
+                        if (response != null) {
                             println("Response: $response")
-                            sendSerialized(response)
+                            sendSerialized<ServerMsg>(response)
                         }
                     }
-                }
-
-                while (true) {
-                    val state = getState()
-                    sendSerialized(ServerMsg.State(remainingTime = state.remainingTime()))
-                    delay(500.milliseconds)
+                } finally {
+                    println("Client disconnected")
                 }
             }
         }

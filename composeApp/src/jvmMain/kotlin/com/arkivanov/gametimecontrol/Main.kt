@@ -24,7 +24,6 @@ import com.badoo.reaktive.coroutinesinterop.asScheduler
 import com.badoo.reaktive.scheduler.mainScheduler
 import com.badoo.reaktive.scheduler.overrideSchedulers
 import kotlinx.coroutines.Dispatchers
-import java.net.NetworkInterface
 import kotlin.time.TimeSource
 
 

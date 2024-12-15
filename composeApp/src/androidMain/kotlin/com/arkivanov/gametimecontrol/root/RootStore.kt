@@ -1,6 +1,7 @@
 package com.arkivanov.gametimecontrol.root
 
 import com.arkivanov.gametimecontrol.ClientMsg
+import com.arkivanov.gametimecontrol.DEFAULT_PORT
 import com.arkivanov.gametimecontrol.ServerMsg
 import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.core.store.StoreFactory
@@ -18,8 +19,9 @@ import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
 import io.ktor.client.plugins.websocket.receiveDeserialized
 import io.ktor.client.plugins.websocket.sendSerialized
 import io.ktor.client.plugins.websocket.webSocketSession
-import io.ktor.http.DEFAULT_PORT
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import kotlinx.io.EOFException
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
@@ -98,13 +100,7 @@ private class RootExecutor(
 
         dispatch(Msg.SetConnection(Connection.Connecting))
 
-        singleFromCoroutine {
-            webSocketsClient.webSocketSession(
-                host = state().host,
-                port = DEFAULT_PORT,
-                path = "/",
-            )
-        }
+        singleFromCoroutine { webSocketsClient.webSocketSession(host = state().host, port = DEFAULT_PORT, path = "/") }
             .observeOn(mainScheduler)
             .doOnBeforeSuccess { dispatch(Msg.SetConnection(Connection.Connected(it))) }
             .flatMapObservable { session ->
@@ -113,9 +109,12 @@ private class RootExecutor(
                     .observeOn(mainScheduler)
             }
             .subscribeScoped(
-                onError = {
+                onError = { error ->
                     dispatch(Msg.SetConnection(Connection.Disconnected))
-                    publish(RootLabel.Error(message = it.message ?: "Unknown error"))
+
+                    if ((error !is EOFException) && (error !is ClosedReceiveChannelException)) {
+                        publish(RootLabel.Error(message = error.message ?: error.toString()))
+                    }
                 },
                 onComplete = { dispatch(Msg.SetConnection(Connection.Disconnected)) },
                 onNext = ::onServerMsg,
@@ -141,7 +140,7 @@ private class RootExecutor(
 
     private fun sendMessage(message: ClientMsg) {
         completableFromCoroutine {
-            session()?.sendSerialized(message)
+            session()?.sendSerialized<ClientMsg>(message)
         }.subscribeScoped()
     }
 
@@ -156,7 +155,7 @@ private class RootExecutor(
 
 private fun RootState.reduce(msg: Msg): RootState =
     when (msg) {
-        is Msg.SetConnection -> copy(connection = connection)
+        is Msg.SetConnection -> copy(connection = msg.connection)
         is Msg.ApplyServerState -> copy(remainingTime = msg.state.remainingTime)
         is Msg.SetMinutes -> copy(minutes = msg.minutes)
         is Msg.SetHost -> copy(host = msg.host)
