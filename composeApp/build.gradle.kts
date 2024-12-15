@@ -23,8 +23,11 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.decompose)
             implementation(libs.decompose.compose)
-            implementation(libs.kotlinx.serialization.json)
+            implementation(libs.serialization.core)
+            implementation(libs.datetime)
             implementation(libs.reaktive)
+            implementation(libs.mvikotlin)
+            implementation(libs.mvikotlin.extensions.reaktive)
         }
 
         commonTest.dependencies {
@@ -37,8 +40,10 @@ kotlin {
 
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
+            implementation(libs.ktor.server.websockets)
+            implementation(libs.ktor.server.netty)
+            implementation(libs.ktor.serialization.json)
         }
-
     }
 }
 
@@ -58,11 +63,6 @@ android {
     }
 }
 
-//https://developer.android.com/develop/ui/compose/testing#setup
-dependencies {
-    androidTestImplementation(libs.androidx.uitest.junit4)
-    debugImplementation(libs.androidx.uitest.testManifest)
-}
 
 compose.desktop {
     application {
