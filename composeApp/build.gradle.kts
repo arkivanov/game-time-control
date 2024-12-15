@@ -9,7 +9,7 @@ plugins {
 }
 
 kotlin {
-    jvmToolchain(11)
+    jvmToolchain(17)
 
     androidTarget()
     jvm()
@@ -75,7 +75,7 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "GameTimeControl"
+            packageName = "Game Time Control"
             packageVersion = "1.0.0"
 
             linux {

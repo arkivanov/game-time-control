@@ -1,0 +1,29 @@
+name: Package Server App
+
+on:
+  workflow_dispatch:
+
+jobs:
+  windows:
+    name: Package Server App on Windows
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: 17
+      - name: Set up cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+      - name: Build
+        run: ./gradlew :composeApp:packageMsi
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          path: composeApp/build/compose/binaries/main/msi
