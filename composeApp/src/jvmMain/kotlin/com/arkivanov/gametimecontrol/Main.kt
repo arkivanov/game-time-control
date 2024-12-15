@@ -51,7 +51,7 @@ fun main() {
         }
 
     application {
-        val windowState = rememberWindowState(width = 400.dp, height = 300.dp)
+        val windowState = rememberWindowState(width = 400.dp, height = 300.dp, isMinimized = true)
         val trayState = rememberTrayState()
 
         Tray(
