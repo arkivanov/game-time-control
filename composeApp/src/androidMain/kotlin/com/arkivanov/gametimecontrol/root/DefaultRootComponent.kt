@@ -2,6 +2,7 @@ package com.arkivanov.gametimecontrol.root
 
 import android.content.Context
 import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.essenty.lifecycle.subscribe
 import com.arkivanov.gametimecontrol.formatTime
 import com.arkivanov.gametimecontrol.map
 import com.arkivanov.gametimecontrol.root.RootComponent.ConnectionState
@@ -34,8 +35,19 @@ class DefaultRootComponent(
 
     override val model: BehaviorObservable<Model> = store.states.map { it.toModel() }
 
+    init {
+        lifecycle.subscribe(
+            onStart = { store.accept(RootIntent.Connect) },
+            onStop = { store.accept(RootIntent.Disconnect) },
+        )
+    }
+
     override fun onHostTextChanged(text: String) {
         store.accept(RootIntent.SetHost(host = text))
+    }
+
+    override fun onConnectButtonClicked() {
+        store.accept(RootIntent.Connect)
     }
 
     override fun onMinutesTextChanged(text: String) {

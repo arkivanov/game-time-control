@@ -8,11 +8,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.defaultComponentContext
 import com.arkivanov.gametimecontrol.root.DefaultRootComponent
+import com.arkivanov.gametimecontrol.root.RootContent
 import com.arkivanov.gametimecontrol.theme.AppTheme
 import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
 import com.badoo.reaktive.scheduler.mainScheduler
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -29,7 +31,10 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             AppTheme(modifier = Modifier.fillMaxSize()) {
-
+                RootContent(
+                    component = rootComponent,
+                    modifier = Modifier.fillMaxSize(),
+                )
             }
         }
     }

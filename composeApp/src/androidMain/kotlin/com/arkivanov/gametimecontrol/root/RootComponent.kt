@@ -8,6 +8,7 @@ interface RootComponent {
     val model: BehaviorObservable<Model>
 
     fun onHostTextChanged(text: String)
+    fun onConnectButtonClicked()
     fun onMinutesTextChanged(text: String)
     fun onAddMinutesButtonClicked()
     fun onAddTimeShortcutClicked(duration: Duration)
