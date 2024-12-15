@@ -1,4 +1,4 @@
-package com.arkivanov.gametimecontrol.root
+package com.arkivanov.gametimecontrol
 
 import kotlin.time.Duration
 

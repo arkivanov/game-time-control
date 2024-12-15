@@ -1,6 +1,7 @@
 package com.arkivanov.gametimecontrol.root
 
 import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.gametimecontrol.formatTime
 import com.arkivanov.gametimecontrol.map
 import com.arkivanov.gametimecontrol.root.RootComponent.Model
 import com.arkivanov.gametimecontrol.withLifecycleStarted

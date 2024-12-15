@@ -8,7 +8,4 @@ sealed interface ClientMsg {
 
     @Serializable
     data class AddTime(val duration: Duration) : ClientMsg
-
-    @Serializable
-    data object GetState : ClientMsg
 }

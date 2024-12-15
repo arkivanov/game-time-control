@@ -1,6 +1,7 @@
 package com.arkivanov.gametimecontrol.root
 
 import com.arkivanov.gametimecontrol.ClientMsg
+import com.arkivanov.gametimecontrol.DEFAULT_PORT
 import com.arkivanov.gametimecontrol.ServerMsg
 import com.arkivanov.mvikotlin.core.store.SimpleBootstrapper
 import com.arkivanov.mvikotlin.core.store.Store
@@ -20,6 +21,8 @@ import io.ktor.server.websocket.receiveDeserialized
 import io.ktor.server.websocket.sendSerialized
 import io.ktor.server.websocket.timeout
 import io.ktor.server.websocket.webSocket
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import java.net.NetworkInterface
 import kotlin.time.ComparableTimeMark
@@ -71,7 +74,7 @@ private class RootExecutor(
     private val mainScheduler: Scheduler,
 ) : ReaktiveExecutor<Nothing, Unit, RootState, Msg, Nothing>() {
     override fun executeAction(action: Unit) {
-        startServer(onMessage = ::onClientMsg)
+        startServer(getState = ::state, onMessage = ::onClientMsg)
 
         observableInterval(period = 250.milliseconds, scheduler = mainScheduler).subscribeScoped {
             dispatch(Msg.CurrentTimeChanged(clock.markNow()))
@@ -84,19 +87,15 @@ private class RootExecutor(
                 dispatch(Msg.AddTime(duration = msg.duration))
                 return null
             }
-
-            is ClientMsg.GetState -> {
-                val state = state()
-                return ServerMsg.State(remainingTime = state.remainingTime())
-            }
         }
     }
 }
 
 private fun DisposableScope.startServer(
+    getState: () -> RootState,
     onMessage: (ClientMsg) -> ServerMsg?,
 ) {
-    embeddedServer(factory = Netty, port = 9876) {
+    embeddedServer(factory = Netty, port = DEFAULT_PORT) {
         install(WebSockets) {
             pingPeriod = 5.seconds
             timeout = 5.seconds
@@ -105,14 +104,22 @@ private fun DisposableScope.startServer(
 
         routing {
             webSocket("/") {
-                while (true) {
-                    val msg = receiveDeserialized<ClientMsg>()
-                    println("Received: $msg")
+                launch {
+                    while (true) {
+                        val msg = receiveDeserialized<ClientMsg>()
+                        println("Received: $msg")
 
-                    onMessage(msg)?.also { response ->
-                        println("Response: $response")
-                        sendSerialized(response)
+                        onMessage(msg)?.also { response ->
+                            println("Response: $response")
+                            sendSerialized(response)
+                        }
                     }
+                }
+
+                while (true) {
+                    val state = getState()
+                    sendSerialized(ServerMsg.State(remainingTime = state.remainingTime()))
+                    delay(500.milliseconds)
                 }
             }
         }

@@ -15,6 +15,7 @@ import com.badoo.reaktive.observable.observableOfNever
 import com.badoo.reaktive.observable.subscribe
 import com.badoo.reaktive.observable.switchMap
 import com.badoo.reaktive.subject.behavior.BehaviorObservable
+import kotlinx.coroutines.channels.ReceiveChannel
 
 fun <T, R> BehaviorObservable<T>.map(mapper: (T) -> R): BehaviorObservable<R> =
     object : BehaviorObservable<R>, Observable<R> by (this as Observable<T>).map(mapper) {

@@ -29,6 +29,7 @@ kotlin {
             implementation(libs.mvikotlin)
             implementation(libs.mvikotlin.main)
             implementation(libs.mvikotlin.extensions.reaktive)
+            implementation(libs.ktor.serialization.json)
         }
 
         commonTest.dependencies {
@@ -37,13 +38,14 @@ kotlin {
 
         androidMain.dependencies {
             implementation(libs.androidx.activityCompose)
+            implementation(libs.ktor.client.websockets)
+            implementation(libs.ktor.client.okhttp)
         }
 
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.ktor.server.websockets)
             implementation(libs.ktor.server.netty)
-            implementation(libs.ktor.serialization.json)
             implementation(libs.coroutines.swing)
         }
     }
