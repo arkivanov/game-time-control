@@ -15,7 +15,6 @@ import com.badoo.reaktive.observable.observableOfNever
 import com.badoo.reaktive.observable.subscribe
 import com.badoo.reaktive.observable.switchMap
 import com.badoo.reaktive.subject.behavior.BehaviorObservable
-import kotlinx.coroutines.channels.ReceiveChannel
 
 fun <T, R> BehaviorObservable<T>.map(mapper: (T) -> R): BehaviorObservable<R> =
     object : BehaviorObservable<R>, Observable<R> by (this as Observable<T>).map(mapper) {
@@ -26,12 +25,19 @@ fun <T, R> BehaviorObservable<T>.map(mapper: (T) -> R): BehaviorObservable<R> =
 fun <T> BehaviorObservable<T>.subscribeAsState(): State<T> {
     val state = remember(this) { mutableStateOf(value) }
 
-    DisposableEffect(this) {
-        val disposable = subscribe(onNext = { state.value = it })
-        onDispose(disposable::dispose)
+    ObservableEffect(this) {
+        state.value = it
     }
 
     return state
+}
+
+@Composable
+fun <T> ObservableEffect(observable: Observable<T>, block: (T) -> Unit) {
+    DisposableEffect(observable) {
+        val disposable = observable.subscribe(onNext = block)
+        onDispose(disposable::dispose)
+    }
 }
 
 fun Lifecycle.startedEvents(): Observable<Boolean> =

@@ -9,7 +9,11 @@ import com.arkivanov.gametimecontrol.root.RootComponent.ConnectionState
 import com.arkivanov.gametimecontrol.root.RootComponent.Model
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.core.store.StoreFactory
+import com.arkivanov.mvikotlin.extensions.reaktive.labels
 import com.arkivanov.mvikotlin.extensions.reaktive.states
+import com.badoo.reaktive.observable.Observable
+import com.badoo.reaktive.observable.map
+import com.badoo.reaktive.observable.mapNotNull
 import com.badoo.reaktive.scheduler.Scheduler
 import com.badoo.reaktive.subject.behavior.BehaviorObservable
 import io.ktor.client.HttpClient
@@ -34,6 +38,7 @@ class DefaultRootComponent(
         }
 
     override val model: BehaviorObservable<Model> = store.states.map { it.toModel() }
+    override val errors: Observable<String> = store.labels.mapNotNull { it as? RootLabel.Error }.map { it.message }
 
     init {
         lifecycle.subscribe(

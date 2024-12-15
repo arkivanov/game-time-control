@@ -1,11 +1,13 @@
 package com.arkivanov.gametimecontrol.root
 
+import com.badoo.reaktive.observable.Observable
 import com.badoo.reaktive.subject.behavior.BehaviorObservable
 import kotlin.time.Duration
 
 interface RootComponent {
 
     val model: BehaviorObservable<Model>
+    val errors: Observable<String>
 
     fun onHostTextChanged(text: String)
     fun onConnectButtonClicked()

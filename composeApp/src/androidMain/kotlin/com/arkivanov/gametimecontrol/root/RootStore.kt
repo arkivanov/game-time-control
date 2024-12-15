@@ -45,11 +45,15 @@ sealed interface RootIntent {
     data class SetHost(val host: String) : RootIntent
 }
 
+sealed interface RootLabel {
+    data class Error(val message: String) : RootLabel
+}
+
 fun StoreFactory.rootStore(
     webSocketsClient: HttpClient,
     settings: RootSettings,
     mainScheduler: Scheduler,
-): Store<RootIntent, RootState, Nothing> =
+): Store<RootIntent, RootState, RootLabel> =
     create(
         name = "RootStore",
         initialState = RootState(host = settings.host ?: "192.168.0.1"),
@@ -74,7 +78,7 @@ private class RootExecutor(
     private val webSocketsClient: HttpClient,
     private val settings: RootSettings,
     private val mainScheduler: Scheduler,
-) : ReaktiveExecutor<RootIntent, Nothing, RootState, Msg, Nothing>() {
+) : ReaktiveExecutor<RootIntent, Nothing, RootState, Msg, RootLabel>() {
 
     override fun executeIntent(intent: RootIntent) {
         when (intent) {
@@ -109,7 +113,10 @@ private class RootExecutor(
                     .observeOn(mainScheduler)
             }
             .subscribeScoped(
-                onError = { dispatch(Msg.SetConnection(Connection.Disconnected)) },
+                onError = {
+                    dispatch(Msg.SetConnection(Connection.Disconnected))
+                    publish(RootLabel.Error(message = it.message ?: "Unknown error"))
+                },
                 onComplete = { dispatch(Msg.SetConnection(Connection.Disconnected)) },
                 onNext = ::onServerMsg,
             )
