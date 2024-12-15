@@ -22,6 +22,7 @@ kotlin {
             implementation(compose.components.resources)
             implementation(libs.decompose)
             implementation(libs.decompose.compose)
+            implementation(libs.essenty.lifecycle.reaktive)
             implementation(libs.serialization.core)
             implementation(libs.datetime)
             implementation(libs.reaktive)

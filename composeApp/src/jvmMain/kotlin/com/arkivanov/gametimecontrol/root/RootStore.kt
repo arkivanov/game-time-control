@@ -38,6 +38,7 @@ import kotlin.coroutines.resumeWithException
 import kotlin.time.ComparableTimeMark
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeSource
 
@@ -47,13 +48,19 @@ data class RootState(
     val endTime: ComparableTimeMark? = null,
 )
 
+sealed interface RootLabel {
+    data object TenMinutesRemaining : RootLabel
+    data object OneMinuteRemaining : RootLabel
+    data object TimeOut : RootLabel
+}
+
 fun RootState.remainingTime(): Duration =
     ((endTime ?: currentTime) - currentTime).coerceAtLeast(Duration.ZERO)
 
 fun StoreFactory.rootStore(
     clock: TimeSource.WithComparableMarks,
     mainScheduler: Scheduler,
-): Store<Nothing, RootState, Nothing> =
+): Store<Nothing, RootState, RootLabel> =
     create(
         name = "RootStore",
         initialState = RootState(addresses = getLocalAddresses(), currentTime = clock.markNow()),
@@ -82,7 +89,7 @@ private sealed interface Msg {
 private class RootExecutor(
     private val clock: TimeSource.WithComparableMarks,
     private val mainScheduler: Scheduler,
-) : ReaktiveExecutor<Nothing, Unit, RootState, Msg, Nothing>() {
+) : ReaktiveExecutor<Nothing, Unit, RootState, Msg, RootLabel>() {
 
     override fun executeAction(action: Unit) {
         startServer(
@@ -91,7 +98,22 @@ private class RootExecutor(
         )
 
         observableInterval(period = 250.milliseconds, scheduler = mainScheduler).subscribeScoped {
-            dispatch(Msg.CurrentTimeChanged(clock.markNow()))
+            val currentTime = clock.markNow()
+            val state = state()
+            val endTime = state.endTime
+
+            if (endTime != null) {
+                val oldRemainingTime = (endTime - state.currentTime).coerceAtLeast(Duration.ZERO)
+                val newRemainingTime = (endTime - currentTime).coerceAtLeast(Duration.ZERO)
+
+                TIME_OUT_SIGNALS.forEach { (duration, label) ->
+                    if ((newRemainingTime <= duration) && (oldRemainingTime > duration)) {
+                        publish(label)
+                    }
+                }
+            }
+
+            dispatch(Msg.CurrentTimeChanged(currentTime))
         }
     }
 
@@ -160,3 +182,10 @@ private fun RootState.reduce(msg: Msg): RootState =
         is Msg.CurrentTimeChanged -> copy(currentTime = msg.timeMark)
         is Msg.AddTime -> copy(endTime = (endTime ?: currentTime) + msg.duration)
     }
+
+private val TIME_OUT_SIGNALS =
+    listOf(
+        10.minutes to RootLabel.TenMinutesRemaining,
+        1.minutes to RootLabel.OneMinuteRemaining,
+        Duration.ZERO to RootLabel.TimeOut,
+    )

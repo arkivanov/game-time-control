@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Notification
 import androidx.compose.ui.window.Tray
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
@@ -24,6 +25,7 @@ import com.badoo.reaktive.coroutinesinterop.asScheduler
 import com.badoo.reaktive.scheduler.mainScheduler
 import com.badoo.reaktive.scheduler.overrideSchedulers
 import kotlinx.coroutines.Dispatchers
+import kotlin.system.exitProcess
 import kotlin.time.TimeSource
 
 
@@ -31,7 +33,6 @@ fun main() {
     overrideSchedulers(main = { Dispatchers.Main.asScheduler() })
 
     val lifecycle = LifecycleRegistry()
-
 
     val rootComponent =
         runOnUiThread {
@@ -42,6 +43,10 @@ fun main() {
                 storeFactory = DefaultStoreFactory(),
                 clock = TimeSource.Monotonic,
                 mainScheduler = mainScheduler,
+                shutdownSignal = {
+                    Runtime.getRuntime().exec("shutdown -s -t 0")
+                    exitProcess(0)
+                },
             )
         }
 
@@ -60,6 +65,16 @@ fun main() {
                 )
             },
         )
+
+        ObservableEffect(rootComponent.notifications) { message ->
+            trayState.sendNotification(
+                Notification(
+                    title = "Game Time Control",
+                    message = message,
+                    type = Notification.Type.Warning,
+                )
+            )
+        }
 
         Window(
             onCloseRequest = ::exitApplication,

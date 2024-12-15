@@ -11,6 +11,7 @@ ktor = "3.0.2"
 coroutines = "1.9.0"
 reaktive = "2.3.0"
 mvikotlin = "4.2.0"
+essenty = "2.4.0"
 
 [libraries]
 
@@ -24,6 +25,7 @@ reaktive-coroutines = { module = "com.badoo.reaktive:coroutines-interop", versio
 mvikotlin = { module = "com.arkivanov.mvikotlin:mvikotlin", version.ref = "mvikotlin" }
 mvikotlin-main = { module = "com.arkivanov.mvikotlin:mvikotlin-main", version.ref = "mvikotlin" }
 mvikotlin-extensions-reaktive = { module = "com.arkivanov.mvikotlin:mvikotlin-extensions-reaktive", version.ref = "mvikotlin" }
+essenty-lifecycle-reaktive = { module = "com.arkivanov.essenty:lifecycle-reaktive", version.ref = "essenty" }
 ktor-server-websockets = { module = "io.ktor:ktor-server-websockets", version.ref = "ktor" }
 ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }
 ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.ref = "ktor" }
