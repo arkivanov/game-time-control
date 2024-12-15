@@ -26,6 +26,7 @@ class DefaultRootComponent(
 
     private fun RootState.toModel(): Model =
         Model(
+            addresses = addresses.ifEmpty { listOf("Unknown address") },
             remainingTime = remainingTime().formatTime(),
         )
 }

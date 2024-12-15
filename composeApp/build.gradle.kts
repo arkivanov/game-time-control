@@ -20,12 +20,12 @@ kotlin {
             implementation(compose.foundation)
             implementation(compose.material3)
             implementation(compose.components.resources)
-            implementation(compose.components.uiToolingPreview)
             implementation(libs.decompose)
             implementation(libs.decompose.compose)
             implementation(libs.serialization.core)
             implementation(libs.datetime)
             implementation(libs.reaktive)
+            implementation(libs.reaktive.coroutines)
             implementation(libs.mvikotlin)
             implementation(libs.mvikotlin.main)
             implementation(libs.mvikotlin.extensions.reaktive)
@@ -44,6 +44,7 @@ kotlin {
             implementation(libs.ktor.server.websockets)
             implementation(libs.ktor.server.netty)
             implementation(libs.ktor.serialization.json)
+            implementation(libs.coroutines.swing)
         }
     }
 }

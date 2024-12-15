@@ -7,6 +7,7 @@ interface RootComponent {
     val model: BehaviorObservable<Model>
 
     data class Model(
+        val addresses: List<String>,
         val remainingTime: String,
     )
 }

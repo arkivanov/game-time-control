@@ -21,6 +21,7 @@ import io.ktor.server.websocket.sendSerialized
 import io.ktor.server.websocket.timeout
 import io.ktor.server.websocket.webSocket
 import kotlinx.serialization.json.Json
+import java.net.NetworkInterface
 import kotlin.time.ComparableTimeMark
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -28,6 +29,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeSource
 
 data class RootState(
+    val addresses: List<String>,
     val currentTime: ComparableTimeMark,
     val endTime: ComparableTimeMark? = null,
 )
@@ -41,11 +43,23 @@ fun StoreFactory.rootStore(
 ): Store<Nothing, RootState, Nothing> =
     create(
         name = "RootStore",
-        initialState = RootState(currentTime = clock.markNow()),
+        initialState = RootState(addresses = getLocalAddresses(), currentTime = clock.markNow()),
         bootstrapper = SimpleBootstrapper(Unit),
         executorFactory = { RootExecutor(clock, mainScheduler) },
         reducer = { reduce(it) },
     )
+
+private fun getLocalAddresses(): List<String> =
+    runCatching { NetworkInterface.getNetworkInterfaces().asSequence() }
+        .getOrDefault(emptySequence())
+        .filter {
+            runCatching { it.isUp && !it.isLoopback && !it.isPointToPoint }
+                .getOrDefault(false)
+        }
+        .flatMap { it.inetAddresses.asSequence() }
+        .filterNot { it.isLinkLocalAddress }
+        .map { it.hostAddress }
+        .toList()
 
 private sealed interface Msg {
     data class CurrentTimeChanged(val timeMark: ComparableTimeMark) : Msg

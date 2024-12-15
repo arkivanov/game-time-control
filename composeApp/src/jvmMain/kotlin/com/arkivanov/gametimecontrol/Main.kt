@@ -18,17 +18,26 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.gametimecontrol.root.DefaultRootComponent
 import com.arkivanov.gametimecontrol.root.RootContent
 import com.arkivanov.gametimecontrol.theme.AppTheme
+import com.arkivanov.mvikotlin.core.utils.setMainThreadId
 import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
+import com.badoo.reaktive.coroutinesinterop.asScheduler
 import com.badoo.reaktive.scheduler.mainScheduler
-import java.awt.Dimension
+import com.badoo.reaktive.scheduler.overrideSchedulers
+import kotlinx.coroutines.Dispatchers
+import java.net.NetworkInterface
 import kotlin.time.TimeSource
 
 
 fun main() {
+    overrideSchedulers(main = { Dispatchers.Main.asScheduler() })
+
     val lifecycle = LifecycleRegistry()
+
 
     val rootComponent =
         runOnUiThread {
+            setMainThreadId(Thread.currentThread().id)
+
             DefaultRootComponent(
                 componentContext = DefaultComponentContext(lifecycle),
                 storeFactory = DefaultStoreFactory(),
@@ -38,7 +47,7 @@ fun main() {
         }
 
     application {
-        val windowState = rememberWindowState(width = 800.dp, height = 600.dp)
+        val windowState = rememberWindowState(width = 400.dp, height = 300.dp)
         val trayState = rememberTrayState()
 
         Tray(
@@ -54,12 +63,11 @@ fun main() {
         )
 
         Window(
-            title = "GameTimeControl",
-            state = windowState,
             onCloseRequest = ::exitApplication,
+            state = windowState,
+            title = "GameTimeControl",
+            resizable = false,
         ) {
-            window.minimumSize = Dimension(350, 600)
-
             AppTheme(modifier = Modifier.fillMaxSize()) {
                 RootContent(
                     component = rootComponent,
