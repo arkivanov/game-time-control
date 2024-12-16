@@ -1,6 +1,6 @@
 # Game Time Control
 
-A simple tool to automatically shut down your PC after a specified time, remotely controlled from a mobile device. Useful for controlling children's screen time.
+A simple tool to automatically shut down your PC after a specified time, remotely controlled from a mobile device. Also displays a notification when 10 minutes and 1 minute left. Useful for controlling children's screen time.
 
 Currently supported platforms:
 
