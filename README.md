@@ -20,3 +20,9 @@ Currently supported platforms:
 ## Screenshots
 
 <img src="media/android_app.png" width="256" alt="Android App"> <img src="media/server_app.png" width="256" alt="Android App">
+
+## Author
+
+Twitter: [@arkann1985](https://twitter.com/arkann1985)
+
+If you like this project you can always <a href="https://www.buymeacoffee.com/arkivanov" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee" height=32></a> ;-)
