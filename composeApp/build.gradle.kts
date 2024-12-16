@@ -24,7 +24,6 @@ kotlin {
             implementation(libs.decompose.compose)
             implementation(libs.essenty.lifecycle.reaktive)
             implementation(libs.serialization.core)
-            implementation(libs.datetime)
             implementation(libs.reaktive)
             implementation(libs.reaktive.coroutines)
             implementation(libs.mvikotlin)

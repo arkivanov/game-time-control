@@ -19,7 +19,6 @@ androidx-activityCompose = { module = "androidx.activity:activity-compose", vers
 decompose = { module = "com.arkivanov.decompose:decompose", version.ref = "decompose" }
 decompose-compose = { module = "com.arkivanov.decompose:extensions-compose", version.ref = "decompose" }
 serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "serialization" }
-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetime" }
 reaktive = { module = "com.badoo.reaktive:reaktive", version.ref = "reaktive" }
 reaktive-coroutines = { module = "com.badoo.reaktive:coroutines-interop", version.ref = "reaktive" }
 mvikotlin = { module = "com.arkivanov.mvikotlin:mvikotlin", version.ref = "mvikotlin" }
