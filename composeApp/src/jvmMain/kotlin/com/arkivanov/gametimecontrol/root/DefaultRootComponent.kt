@@ -32,11 +32,10 @@ class DefaultRootComponent(
             .withLifecycleStarted(lifecycle)
 
     override val notifications: Observable<String> =
-        store.labels.mapNotNull {
-            when (it) {
-                RootLabel.TenMinutesRemaining -> "10 MINUTES LEFT!"
-                RootLabel.OneMinuteRemaining -> "1 MINUTE LEFT!"
-                RootLabel.TimeOut -> null
+        store.labels.mapNotNull { label ->
+            when (label) {
+                is RootLabel.MinutesRemaining -> "${label.minutes} MINUTES LEFT!"
+                is RootLabel.TimeOut -> null
             }
         }
 
