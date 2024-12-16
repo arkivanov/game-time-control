@@ -24,7 +24,7 @@ class DefaultRootComponent(
     shutdownSignal: () -> Unit,
 ) : RootComponent, ComponentContext by componentContext, DisposableScope by componentContext.disposableScope() {
 
-    private val store = storeFactory.rootStore(clock, mainScheduler)
+    private val store = storeFactory.rootStore(clock, DefaultRootSettings, mainScheduler)
 
     override val model: BehaviorObservable<Model> =
         store.states
@@ -49,6 +49,7 @@ class DefaultRootComponent(
     private fun RootState.toModel(): Model =
         Model(
             addresses = addresses.ifEmpty { listOf("Unknown address") },
+            pinCode = pinCode,
             remainingTime = remainingTime().formatTime(),
         )
 }

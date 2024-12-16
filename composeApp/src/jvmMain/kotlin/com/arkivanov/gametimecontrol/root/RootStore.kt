@@ -44,6 +44,7 @@ import kotlin.time.TimeSource
 
 data class RootState(
     val addresses: List<String>,
+    val pinCode: String,
     val currentTime: ComparableTimeMark,
     val endTime: ComparableTimeMark? = null,
 )
@@ -59,13 +60,18 @@ fun RootState.remainingTime(): Duration =
 
 fun StoreFactory.rootStore(
     clock: TimeSource.WithComparableMarks,
+    settings: RootSettings,
     mainScheduler: Scheduler,
 ): Store<Nothing, RootState, RootLabel> =
     create(
         name = "RootStore",
-        initialState = RootState(addresses = getLocalAddresses(), currentTime = clock.markNow()),
+        initialState = RootState(
+            addresses = getLocalAddresses(),
+            pinCode = settings.pinCode,
+            currentTime = clock.markNow(),
+        ),
         bootstrapper = SimpleBootstrapper(Unit),
-        executorFactory = { RootExecutor(clock, mainScheduler) },
+        executorFactory = { RootExecutor(clock, settings, mainScheduler) },
         reducer = { reduce(it) },
     )
 
@@ -84,10 +90,12 @@ private fun getLocalAddresses(): List<String> =
 private sealed interface Msg {
     data class CurrentTimeChanged(val timeMark: ComparableTimeMark) : Msg
     data class AddTime(val duration: Duration) : Msg
+    data class SetPinCode(val pinCode: String) : Msg
 }
 
 private class RootExecutor(
     private val clock: TimeSource.WithComparableMarks,
+    private val settings: RootSettings,
     private val mainScheduler: Scheduler,
 ) : ReaktiveExecutor<Nothing, Unit, RootState, Msg, RootLabel>() {
 
@@ -117,10 +125,17 @@ private class RootExecutor(
         }
     }
 
+    @Suppress("SameReturnValue")
     private fun onClientMsg(msg: ClientMsg): ServerMsg? {
         when (msg) {
             is ClientMsg.AddTime -> {
                 dispatch(Msg.AddTime(duration = msg.duration))
+                return null
+            }
+
+            is ClientMsg.SetPinCode -> {
+                settings.pinCode = msg.pinCode
+                dispatch(Msg.SetPinCode(pinCode = msg.pinCode))
                 return null
             }
         }
@@ -181,6 +196,7 @@ private fun RootState.reduce(msg: Msg): RootState =
     when (msg) {
         is Msg.CurrentTimeChanged -> copy(currentTime = msg.timeMark)
         is Msg.AddTime -> copy(endTime = (endTime ?: currentTime) + msg.duration)
+        is Msg.SetPinCode -> copy(pinCode = msg.pinCode)
     }
 
 private val TIME_OUT_SIGNALS =

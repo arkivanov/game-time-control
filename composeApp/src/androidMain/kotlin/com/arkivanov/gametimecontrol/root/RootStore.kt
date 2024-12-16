@@ -29,6 +29,7 @@ data class RootState(
     val host: String,
     val connection: Connection = Connection.Disconnected,
     val remainingTime: Duration? = null,
+    val pinCode: String = "",
     val minutes: String = "0",
 )
 
@@ -41,6 +42,8 @@ sealed interface Connection {
 sealed interface RootIntent {
     data object Connect : RootIntent
     data object Disconnect : RootIntent
+    data class SetPinCode(val pinCode: String) : RootIntent
+    data object SavePinCode : RootIntent
     data class SetMinutes(val minutes: String) : RootIntent
     data object AddMinutes : RootIntent
     data class AddTime(val duration: Duration) : RootIntent
@@ -72,6 +75,7 @@ fun StoreFactory.rootStore(
 private sealed interface Msg {
     data class SetConnection(val connection: Connection) : Msg
     data class ApplyServerState(val state: ServerMsg.State) : Msg
+    data class SetPinCode(val pinCode: String) : Msg
     data class SetMinutes(val minutes: String) : Msg
     data class SetHost(val host: String) : Msg
 }
@@ -86,7 +90,9 @@ private class RootExecutor(
         when (intent) {
             is RootIntent.Connect -> connect()
             is RootIntent.Disconnect -> disconnect()
+            is RootIntent.SetPinCode -> dispatch(Msg.SetPinCode(intent.pinCode))
             is RootIntent.SetMinutes -> dispatch(Msg.SetMinutes(minutes = intent.minutes))
+            is RootIntent.SavePinCode -> sendMessage(ClientMsg.SetPinCode(pinCode = state().pinCode))
             is RootIntent.AddMinutes -> addMinutes()
             is RootIntent.AddTime -> sendMessage(ClientMsg.AddTime(duration = intent.duration))
             is RootIntent.SetHost -> setHost(host = intent.host)
@@ -157,6 +163,7 @@ private fun RootState.reduce(msg: Msg): RootState =
     when (msg) {
         is Msg.SetConnection -> copy(connection = msg.connection)
         is Msg.ApplyServerState -> copy(remainingTime = msg.state.remainingTime)
+        is Msg.SetPinCode -> copy(pinCode = msg.pinCode)
         is Msg.SetMinutes -> copy(minutes = msg.minutes)
         is Msg.SetHost -> copy(host = msg.host)
     }

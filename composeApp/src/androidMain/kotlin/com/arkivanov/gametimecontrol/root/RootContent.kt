@@ -104,6 +104,28 @@ fun RootContent(
             Spacer(modifier = Modifier.height(16.dp))
 
             TextField(
+                value = model.pinCode,
+                onValueChange = component::onPinCodeChanged,
+                modifier = Modifier.fillMaxWidth(fraction = 0.8F),
+                textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
+                placeholder = {
+                    Text(
+                        text = "Pin Code",
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center,
+                    )
+                },
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Button(onClick = component::onSetPinCodeButtonClicked) {
+                Text(text = "Set Pin Code")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            TextField(
                 value = model.minutes,
                 onValueChange = component::onMinutesTextChanged,
                 modifier = Modifier.fillMaxWidth(fraction = 0.8F),

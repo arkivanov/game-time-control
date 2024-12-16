@@ -10,6 +10,7 @@ interface RootComponent {
 
     data class Model(
         val addresses: List<String>,
+        val pinCode: String,
         val remainingTime: String,
     )
 }

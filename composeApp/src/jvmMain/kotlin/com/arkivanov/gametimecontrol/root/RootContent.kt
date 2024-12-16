@@ -51,6 +51,7 @@ fun RootContentPreview() {
         component = PreviewRootComponent(
             model = RootComponent.Model(
                 addresses = listOf("192.168.0.1", "192.168.0.2"),
+                pinCode = "",
                 remainingTime = "2:32:17",
             )
         ),

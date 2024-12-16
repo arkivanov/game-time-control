@@ -8,4 +8,7 @@ sealed interface ClientMsg {
 
     @Serializable
     data class AddTime(val duration: Duration) : ClientMsg
+
+    @Serializable
+    data class SetPinCode(val pinCode: String) : ClientMsg
 }

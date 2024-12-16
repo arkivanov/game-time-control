@@ -11,6 +11,8 @@ interface RootComponent {
 
     fun onHostTextChanged(text: String)
     fun onConnectButtonClicked()
+    fun onPinCodeChanged(text: String)
+    fun onSetPinCodeButtonClicked()
     fun onMinutesTextChanged(text: String)
     fun onAddMinutesButtonClicked()
     fun onAddTimeShortcutClicked(duration: Duration)
@@ -18,6 +20,7 @@ interface RootComponent {
     data class Model(
         val connectionState: ConnectionState,
         val host: String,
+        val pinCode: String,
         val minutes: String,
         val remainingTime: String,
         val addTimeShortcuts: List<Duration>,

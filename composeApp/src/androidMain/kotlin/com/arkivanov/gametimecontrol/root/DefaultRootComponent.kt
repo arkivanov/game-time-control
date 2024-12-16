@@ -55,6 +55,14 @@ class DefaultRootComponent(
         store.accept(RootIntent.Connect)
     }
 
+    override fun onPinCodeChanged(text: String) {
+        store.accept(RootIntent.SetPinCode(pinCode = text))
+    }
+
+    override fun onSetPinCodeButtonClicked() {
+        store.accept(RootIntent.SavePinCode)
+    }
+
     override fun onMinutesTextChanged(text: String) {
         store.accept(RootIntent.SetMinutes(minutes = text))
     }
@@ -75,6 +83,7 @@ class DefaultRootComponent(
                 is Connection.Connected -> ConnectionState.CONNECTED
             },
             host = host,
+            pinCode = pinCode,
             minutes = minutes,
             remainingTime = remainingTime?.formatTime() ?: "0:00:00",
             addTimeShortcuts = ADD_TIME_SHORTCUTS,
