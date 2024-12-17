@@ -201,7 +201,7 @@ private fun RootState.reduce(msg: Msg): RootState =
 private val TIME_OUT_SIGNALS =
     listOf(
         15.minutes to RootLabel.MinutesRemaining(minutes = 15),
-        10.minutes to RootLabel.MinutesRemaining(minutes = 10),
+        5.minutes to RootLabel.MinutesRemaining(minutes = 5),
         1.minutes to RootLabel.MinutesRemaining(minutes = 1),
         Duration.ZERO to RootLabel.TimeOut,
     )
