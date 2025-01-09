@@ -11,5 +11,5 @@ class PreviewRootComponent(
 ) : RootComponent {
 
     override val model: BehaviorObservable<Model> = BehaviorSubject(model)
-    override val notifications: Observable<String> = observableOfNever()
+    override val notifications: Observable<Notification> = observableOfNever()
 }

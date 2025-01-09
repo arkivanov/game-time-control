@@ -11,7 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Notification
 import androidx.compose.ui.window.Tray
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
@@ -22,6 +21,7 @@ import com.arkivanov.decompose.extensions.compose.lifecycle.LifecycleController
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.gametimecontrol.root.CloseDialog
 import com.arkivanov.gametimecontrol.root.DefaultRootComponent
+import com.arkivanov.gametimecontrol.root.Notification
 import com.arkivanov.gametimecontrol.root.RootContent
 import com.arkivanov.gametimecontrol.theme.AppTheme
 import com.arkivanov.mvikotlin.core.utils.setMainThreadId
@@ -29,9 +29,10 @@ import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
 import com.badoo.reaktive.coroutinesinterop.asScheduler
 import com.badoo.reaktive.scheduler.mainScheduler
 import com.badoo.reaktive.scheduler.overrideSchedulers
+import kotlinx.coroutines.Dispatchers
 import kotlin.system.exitProcess
 import kotlin.time.TimeSource
-import kotlinx.coroutines.Dispatchers
+import androidx.compose.ui.window.Notification as ComposeNotification
 
 fun main() {
     overrideSchedulers(main = { Dispatchers.Main.asScheduler() })
@@ -70,14 +71,10 @@ fun main() {
             },
         )
 
-        ObservableEffect(rootComponent.notifications) { message ->
-            trayState.sendNotification(
-                Notification(
-                    title = "Game Time Control",
-                    message = message,
-                    type = Notification.Type.Warning,
-                )
-            )
+        ObservableEffect(rootComponent.notifications) { notification ->
+            val composeNotification = notification.toComposeNotification()
+            trayState.sendNotification(composeNotification)
+            readText(composeNotification.message)
         }
 
         var isCloseDialogVisible by remember { mutableStateOf(false) }
@@ -112,3 +109,23 @@ fun main() {
     }
 }
 
+private fun Notification.toComposeNotification(): ComposeNotification =
+    ComposeNotification(
+        title = "Game Time Control",
+        message = when (this) {
+            is Notification.MinutesRemaining -> formatMinutesRemainingMessage(minutes = minutes)
+        },
+        type = type,
+    )
+
+private fun formatMinutesRemainingMessage(minutes: Int): String =
+    "$minutes ${if (minutes == 1) "MINUTE" else "MINUTES"} REMAINING!"
+
+private fun readText(text: String) {
+    ProcessBuilder(
+        listOf(
+            "powershell.exe",
+            "Add-Type -AssemblyName System.Speech; (New-Object System.Speech.Synthesis.SpeechSynthesizer).Speak('$text');"
+        )
+    ).start()
+}

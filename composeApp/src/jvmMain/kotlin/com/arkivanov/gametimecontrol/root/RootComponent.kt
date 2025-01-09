@@ -6,7 +6,7 @@ import com.badoo.reaktive.subject.behavior.BehaviorObservable
 interface RootComponent {
 
     val model: BehaviorObservable<Model>
-    val notifications: Observable<String>
+    val notifications: Observable<Notification>
 
     data class Model(
         val addresses: List<String>,

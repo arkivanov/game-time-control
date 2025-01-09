@@ -50,7 +50,7 @@ data class RootState(
 )
 
 sealed interface RootLabel {
-    data class MinutesRemaining(val minutes: Int) : RootLabel
+    data class Notify(val notification: Notification) : RootLabel
     data object TimeOut : RootLabel
 }
 
@@ -200,8 +200,8 @@ private fun RootState.reduce(msg: Msg): RootState =
 
 private val TIME_OUT_SIGNALS =
     listOf(
-        15.minutes to RootLabel.MinutesRemaining(minutes = 15),
-        5.minutes to RootLabel.MinutesRemaining(minutes = 5),
-        1.minutes to RootLabel.MinutesRemaining(minutes = 1),
+        15.minutes to RootLabel.Notify(Notification.MinutesRemaining(type = NotificationType.Info, minutes = 15)),
+        5.minutes to RootLabel.Notify(Notification.MinutesRemaining(type = NotificationType.Warning, minutes = 5)),
+        1.minutes to RootLabel.Notify(Notification.MinutesRemaining(type = NotificationType.Error, minutes = 1)),
         Duration.ZERO to RootLabel.TimeOut,
     )

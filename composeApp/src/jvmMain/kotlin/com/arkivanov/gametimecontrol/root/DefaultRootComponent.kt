@@ -11,6 +11,7 @@ import com.arkivanov.mvikotlin.extensions.reaktive.labels
 import com.arkivanov.mvikotlin.extensions.reaktive.states
 import com.badoo.reaktive.disposable.scope.DisposableScope
 import com.badoo.reaktive.observable.Observable
+import com.badoo.reaktive.observable.map
 import com.badoo.reaktive.observable.mapNotNull
 import com.badoo.reaktive.scheduler.Scheduler
 import com.badoo.reaktive.subject.behavior.BehaviorObservable
@@ -31,13 +32,10 @@ class DefaultRootComponent(
             .map { it.toModel() }
             .withLifecycleStarted(lifecycle)
 
-    override val notifications: Observable<String> =
-        store.labels.mapNotNull { label ->
-            when (label) {
-                is RootLabel.MinutesRemaining -> "${label.minutes} MINUTES LEFT!"
-                is RootLabel.TimeOut -> null
-            }
-        }
+    override val notifications: Observable<Notification> =
+        store.labels
+            .mapNotNull { it as? RootLabel.Notify }
+            .map { it.notification }
 
     init {
         store.labels
