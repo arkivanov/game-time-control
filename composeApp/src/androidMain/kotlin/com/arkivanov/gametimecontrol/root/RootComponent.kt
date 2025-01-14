@@ -16,6 +16,8 @@ interface RootComponent {
     fun onVoiceEnabledChanged(isEnabled: Boolean)
     fun onMinutesTextChanged(text: String)
     fun onAddMinutesButtonClicked()
+    fun onMessageTextChanged(text: String)
+    fun onSendMessageButtonClicked()
     fun onAddTimeShortcutClicked(duration: Duration)
 
     data class Model(
@@ -24,6 +26,7 @@ interface RootComponent {
         val pinCode: String,
         val isVoiceEnabled: Boolean,
         val minutes: String,
+        val message: String,
         val remainingTime: String,
         val addTimeShortcuts: List<Duration>,
     )

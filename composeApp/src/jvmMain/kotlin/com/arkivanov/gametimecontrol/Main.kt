@@ -117,6 +117,7 @@ private fun Notification.toComposeNotification(): ComposeNotification =
         title = "Game Time Control",
         message = when (this) {
             is Notification.MinutesRemaining -> formatMinutesRemainingMessage(minutes = minutes)
+            is Notification.Message -> message
         },
         type = type,
     )

@@ -75,6 +75,14 @@ class DefaultRootComponent(
         store.accept(RootIntent.AddMinutes)
     }
 
+    override fun onMessageTextChanged(text: String) {
+        store.accept(RootIntent.SetMessage(text))
+    }
+
+    override fun onSendMessageButtonClicked() {
+        store.accept(RootIntent.SendMessage)
+    }
+
     override fun onAddTimeShortcutClicked(duration: Duration) {
         store.accept(RootIntent.AddTime(duration = duration))
     }
@@ -90,6 +98,7 @@ class DefaultRootComponent(
             pinCode = pinCode,
             isVoiceEnabled = isVoiceEnabled,
             minutes = minutes,
+            message = message,
             remainingTime = remainingTime?.formatTime() ?: "0:00:00",
             addTimeShortcuts = ADD_TIME_SHORTCUTS,
         )

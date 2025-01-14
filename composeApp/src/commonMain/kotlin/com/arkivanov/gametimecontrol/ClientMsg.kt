@@ -10,6 +10,9 @@ sealed interface ClientMsg {
     data class AddTime(val duration: Duration) : ClientMsg
 
     @Serializable
+    data class ShowMessage(val message: String) : ClientMsg
+
+    @Serializable
     data class SetPinCode(val pinCode: String) : ClientMsg
 
     @Serializable

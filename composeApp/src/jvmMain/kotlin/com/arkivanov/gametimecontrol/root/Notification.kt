@@ -10,6 +10,13 @@ sealed interface Notification {
         override val isReadable: Boolean,
         val minutes: Int,
     ) : Notification
+
+    data class Message(
+        override val isReadable: Boolean,
+        val message: String,
+    ) : Notification {
+        override val type: NotificationType = NotificationType.Info
+    }
 }
 
 typealias NotificationType = androidx.compose.ui.window.Notification.Type

@@ -146,6 +146,19 @@ private class RootExecutor(
                 return null
             }
 
+            is ClientMsg.ShowMessage -> {
+                publish(
+                    RootLabel.Notify(
+                        Notification.Message(
+                            isReadable = settings.isVoiceEnabled,
+                            message = msg.message,
+                        )
+                    )
+                )
+
+                return null
+            }
+
             is ClientMsg.SetPinCode -> {
                 settings.pinCode = msg.pinCode
                 dispatch(Msg.SetPinCode(pinCode = msg.pinCode))

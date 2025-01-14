@@ -32,6 +32,7 @@ data class RootState(
     val pinCode: String = "",
     val isVoiceEnabled: Boolean = false,
     val minutes: String = "0",
+    val message: String = "",
 )
 
 sealed interface Connection {
@@ -48,6 +49,8 @@ sealed interface RootIntent {
     data class SetVoiceEnabled(val isEnabled: Boolean) : RootIntent
     data class SetMinutes(val minutes: String) : RootIntent
     data object AddMinutes : RootIntent
+    data class SetMessage(val message: String) : RootIntent
+    data object SendMessage : RootIntent
     data class AddTime(val duration: Duration) : RootIntent
     data class SetHost(val host: String) : RootIntent
 }
@@ -79,6 +82,7 @@ private sealed interface Msg {
     data class ApplyServerState(val state: ServerMsg.State) : Msg
     data class SetPinCode(val pinCode: String) : Msg
     data class SetMinutes(val minutes: String) : Msg
+    data class SetMessage(val message: String) : Msg
     data class SetHost(val host: String) : Msg
 }
 
@@ -97,6 +101,8 @@ private class RootExecutor(
             is RootIntent.SetVoiceEnabled -> sendMessage(ClientMsg.SetVoiceEnabled(isEnabled = intent.isEnabled))
             is RootIntent.SetMinutes -> dispatch(Msg.SetMinutes(minutes = intent.minutes))
             is RootIntent.AddMinutes -> addMinutes()
+            is RootIntent.SetMessage -> dispatch(Msg.SetMessage(message = intent.message))
+            is RootIntent.SendMessage -> sendMessage()
             is RootIntent.AddTime -> sendMessage(ClientMsg.AddTime(duration = intent.duration))
             is RootIntent.SetHost -> setHost(host = intent.host)
         }
@@ -147,6 +153,11 @@ private class RootExecutor(
         sendMessage(ClientMsg.AddTime(duration = minutes))
     }
 
+    private fun sendMessage() {
+        val message = state().message.takeUnless(String::isBlank) ?: return
+        sendMessage(ClientMsg.ShowMessage(message = message))
+    }
+
     private fun sendMessage(message: ClientMsg) {
         completableFromCoroutine {
             session()?.sendSerialized<ClientMsg>(message)
@@ -174,5 +185,6 @@ private fun RootState.reduce(msg: Msg): RootState =
 
         is Msg.SetPinCode -> copy(pinCode = msg.pinCode)
         is Msg.SetMinutes -> copy(minutes = msg.minutes)
+        is Msg.SetMessage -> copy(message = msg.message)
         is Msg.SetHost -> copy(host = msg.host)
     }

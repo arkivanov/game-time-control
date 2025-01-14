@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -69,6 +71,7 @@ fun RootContent(
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
+                .verticalScroll(state = rememberScrollState())
                 .padding(16.dp),
             verticalArrangement = Arrangement.Center,
         ) {
@@ -89,6 +92,9 @@ fun RootContent(
                 onAddMinutesButtonClick = component::onAddMinutesButtonClicked,
                 addTimeShortcuts = model.addTimeShortcuts,
                 onAddTimeShortcutClicked = component::onAddTimeShortcutClicked,
+                message = model.message,
+                onMessageTextChanged = component::onMessageTextChanged,
+                onSendMessageButtonClick = component::onSendMessageButtonClicked,
                 modifier = Modifier.fillMaxWidth(),
             )
 
@@ -170,6 +176,9 @@ private fun TimeControls(
     onAddMinutesButtonClick: () -> Unit,
     addTimeShortcuts: List<Duration>,
     onAddTimeShortcutClicked: (Duration) -> Unit,
+    message: String,
+    onMessageTextChanged: (String) -> Unit,
+    onSendMessageButtonClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -207,6 +216,28 @@ private fun TimeControls(
                     Text(text = "+${duration.inWholeMinutes} min")
                 }
             }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        TextField(
+            value = message,
+            onValueChange = onMessageTextChanged,
+            modifier = Modifier.fillMaxWidth(fraction = 0.8F),
+            textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Center),
+            placeholder = {
+                Text(
+                    text = "Message text",
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                )
+            },
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Button(onClick = onSendMessageButtonClick) {
+            Text(text = "Send Message")
         }
     }
 }

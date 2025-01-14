@@ -75,7 +75,7 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "Game Time Control"
-            packageVersion = "1.0.2"
+            packageVersion = "1.0.3"
 
             linux {
                 iconFile.set(project.file("desktopAppIcons/LinuxIcon.png"))
