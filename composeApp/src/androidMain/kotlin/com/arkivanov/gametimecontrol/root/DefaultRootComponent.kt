@@ -63,6 +63,10 @@ class DefaultRootComponent(
         store.accept(RootIntent.SavePinCode)
     }
 
+    override fun onVoiceEnabledChanged(isEnabled: Boolean) {
+        store.accept(RootIntent.SetVoiceEnabled(isEnabled = isEnabled))
+    }
+
     override fun onMinutesTextChanged(text: String) {
         store.accept(RootIntent.SetMinutes(minutes = text))
     }
@@ -84,6 +88,7 @@ class DefaultRootComponent(
             },
             host = host,
             pinCode = pinCode,
+            isVoiceEnabled = isVoiceEnabled,
             minutes = minutes,
             remainingTime = remainingTime?.formatTime() ?: "0:00:00",
             addTimeShortcuts = ADD_TIME_SHORTCUTS,

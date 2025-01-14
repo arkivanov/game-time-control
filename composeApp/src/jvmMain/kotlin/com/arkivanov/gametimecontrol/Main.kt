@@ -74,7 +74,10 @@ fun main() {
         ObservableEffect(rootComponent.notifications) { notification ->
             val composeNotification = notification.toComposeNotification()
             trayState.sendNotification(composeNotification)
-            readText(composeNotification.message)
+
+            if (notification.isReadable) {
+                readText(composeNotification.message)
+            }
         }
 
         var isCloseDialogVisible by remember { mutableStateOf(false) }

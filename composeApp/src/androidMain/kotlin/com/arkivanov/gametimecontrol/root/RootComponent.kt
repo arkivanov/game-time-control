@@ -13,6 +13,7 @@ interface RootComponent {
     fun onConnectButtonClicked()
     fun onPinCodeChanged(text: String)
     fun onSetPinCodeButtonClicked()
+    fun onVoiceEnabledChanged(isEnabled: Boolean)
     fun onMinutesTextChanged(text: String)
     fun onAddMinutesButtonClicked()
     fun onAddTimeShortcutClicked(duration: Duration)
@@ -21,6 +22,7 @@ interface RootComponent {
         val connectionState: ConnectionState,
         val host: String,
         val pinCode: String,
+        val isVoiceEnabled: Boolean,
         val minutes: String,
         val remainingTime: String,
         val addTimeShortcuts: List<Duration>,

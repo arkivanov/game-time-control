@@ -101,6 +101,7 @@ private class RootExecutor(
     override fun executeAction(action: Unit) {
         startServer(
             getState = { singleFromFunction(::state).subscribeOn(mainScheduler) },
+            settings = settings,
             onMessage = { singleOf(it).observeOn(mainScheduler).map(::onClientMsg) },
         )
 
@@ -110,19 +111,32 @@ private class RootExecutor(
             val endTime = state.endTime
 
             if (endTime != null) {
-                val oldRemainingTime = (endTime - state.currentTime).coerceAtLeast(Duration.ZERO)
-                val newRemainingTime = (endTime - currentTime).coerceAtLeast(Duration.ZERO)
-
-                TIME_OUT_SIGNALS.forEach { (duration, label) ->
-                    if ((newRemainingTime <= duration) && (oldRemainingTime > duration)) {
-                        publish(label)
-                    }
-                }
+                getTimeOutLabel(
+                    oldRemainingTime = (endTime - state.currentTime).coerceAtLeast(Duration.ZERO),
+                    newRemainingTime = (endTime - currentTime).coerceAtLeast(Duration.ZERO),
+                )?.also(::publish)
             }
 
             dispatch(Msg.CurrentTimeChanged(currentTime))
         }
     }
+
+    private fun getTimeOutLabel(oldRemainingTime: Duration, newRemainingTime: Duration): RootLabel? =
+        TIME_OUT_SIGNALS
+            .firstOrNull { (duration) -> (newRemainingTime <= duration) && (oldRemainingTime > duration) }
+            ?.let { (_, signal) ->
+                if (signal == null) {
+                    RootLabel.TimeOut
+                } else {
+                    RootLabel.Notify(
+                        Notification.MinutesRemaining(
+                            type = signal.type,
+                            isReadable = settings.isVoiceEnabled,
+                            minutes = signal.minutes,
+                        )
+                    )
+                }
+            }
 
     @Suppress("SameReturnValue")
     private fun onClientMsg(msg: ClientMsg): ServerMsg? {
@@ -137,6 +151,11 @@ private class RootExecutor(
                 dispatch(Msg.SetPinCode(pinCode = msg.pinCode))
                 return null
             }
+
+            is ClientMsg.SetVoiceEnabled -> {
+                settings.isVoiceEnabled = msg.isEnabled
+                return null
+            }
         }
     }
 }
@@ -149,6 +168,7 @@ suspend fun <T> Single<T>.await(): T =
 
 private fun DisposableScope.startServer(
     getState: () -> Single<RootState>,
+    settings: RootSettings,
     onMessage: (ClientMsg) -> Single<ServerMsg?>,
 ) {
     embeddedServer(factory = Netty, port = DEFAULT_PORT) {
@@ -166,7 +186,12 @@ private fun DisposableScope.startServer(
                     launch {
                         while (true) {
                             val state = getState().await()
-                            sendSerialized<ServerMsg>(ServerMsg.State(remainingTime = state.remainingTime()))
+                            sendSerialized<ServerMsg>(
+                                ServerMsg.State(
+                                    remainingTime = state.remainingTime(),
+                                    isVoiceEnabled = settings.isVoiceEnabled,
+                                )
+                            )
                             delay(250.milliseconds)
                         }
                     }
@@ -198,10 +223,12 @@ private fun RootState.reduce(msg: Msg): RootState =
         is Msg.SetPinCode -> copy(pinCode = msg.pinCode)
     }
 
-private val TIME_OUT_SIGNALS =
+private val TIME_OUT_SIGNALS: List<Pair<Duration, MinutesRemainingSignal?>> =
     listOf(
-        15.minutes to RootLabel.Notify(Notification.MinutesRemaining(type = NotificationType.Info, minutes = 15)),
-        5.minutes to RootLabel.Notify(Notification.MinutesRemaining(type = NotificationType.Warning, minutes = 5)),
-        1.minutes to RootLabel.Notify(Notification.MinutesRemaining(type = NotificationType.Error, minutes = 1)),
-        Duration.ZERO to RootLabel.TimeOut,
+        15.minutes to MinutesRemainingSignal(type = NotificationType.Info, minutes = 15),
+        5.minutes to MinutesRemainingSignal(type = NotificationType.Warning, minutes = 5),
+        1.minutes to MinutesRemainingSignal(type = NotificationType.Error, minutes = 1),
+        Duration.ZERO to null,
     )
+
+private data class MinutesRemainingSignal(val type: NotificationType, val minutes: Int)

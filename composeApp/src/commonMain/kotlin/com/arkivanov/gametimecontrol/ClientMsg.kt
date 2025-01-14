@@ -11,4 +11,7 @@ sealed interface ClientMsg {
 
     @Serializable
     data class SetPinCode(val pinCode: String) : ClientMsg
+
+    @Serializable
+    data class SetVoiceEnabled(val isEnabled: Boolean) : ClientMsg
 }

@@ -30,6 +30,7 @@ data class RootState(
     val connection: Connection = Connection.Disconnected,
     val remainingTime: Duration? = null,
     val pinCode: String = "",
+    val isVoiceEnabled: Boolean = false,
     val minutes: String = "0",
 )
 
@@ -44,6 +45,7 @@ sealed interface RootIntent {
     data object Disconnect : RootIntent
     data class SetPinCode(val pinCode: String) : RootIntent
     data object SavePinCode : RootIntent
+    data class SetVoiceEnabled(val isEnabled: Boolean) : RootIntent
     data class SetMinutes(val minutes: String) : RootIntent
     data object AddMinutes : RootIntent
     data class AddTime(val duration: Duration) : RootIntent
@@ -91,8 +93,9 @@ private class RootExecutor(
             is RootIntent.Connect -> connect()
             is RootIntent.Disconnect -> disconnect()
             is RootIntent.SetPinCode -> dispatch(Msg.SetPinCode(intent.pinCode))
-            is RootIntent.SetMinutes -> dispatch(Msg.SetMinutes(minutes = intent.minutes))
             is RootIntent.SavePinCode -> sendMessage(ClientMsg.SetPinCode(pinCode = state().pinCode))
+            is RootIntent.SetVoiceEnabled -> sendMessage(ClientMsg.SetVoiceEnabled(isEnabled = intent.isEnabled))
+            is RootIntent.SetMinutes -> dispatch(Msg.SetMinutes(minutes = intent.minutes))
             is RootIntent.AddMinutes -> addMinutes()
             is RootIntent.AddTime -> sendMessage(ClientMsg.AddTime(duration = intent.duration))
             is RootIntent.SetHost -> setHost(host = intent.host)
@@ -162,7 +165,13 @@ private class RootExecutor(
 private fun RootState.reduce(msg: Msg): RootState =
     when (msg) {
         is Msg.SetConnection -> copy(connection = msg.connection)
-        is Msg.ApplyServerState -> copy(remainingTime = msg.state.remainingTime)
+
+        is Msg.ApplyServerState ->
+            copy(
+                remainingTime = msg.state.remainingTime,
+                isVoiceEnabled = msg.state.isVoiceEnabled,
+            )
+
         is Msg.SetPinCode -> copy(pinCode = msg.pinCode)
         is Msg.SetMinutes -> copy(minutes = msg.minutes)
         is Msg.SetHost -> copy(host = msg.host)
